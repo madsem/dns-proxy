@@ -1,5 +1,7 @@
 # DNS proxy
 
+# TODO: Port to AWS with cloudformation
+
 ## Description
 Creates a instance on DigitalOcean, running bind9 and sniproxy, to allow for proxying of selected traffic through the instance, so it egresses via DigitalOcean's network.
 

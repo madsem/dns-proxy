@@ -111,7 +111,7 @@ EOF
 
 ## Set DNS lookup information for overridden queries
 cat << EOF > /etc/bind/db.override
-\$TTL  86400
+$TTL  86400
 
 @   IN  SOA ns1 root (
             2016061801  ; serial
