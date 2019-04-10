@@ -1,0 +1,166 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Create a single ec2 instance to run dnsProxy'
+Parameters:
+  StackName:
+    Type: String
+    Default: dnsProxy
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t3.nano
+    AllowedValues:
+      - t3.nano
+      - t3.micro
+    ConstraintDescription: must be a valid EC2 instance type.
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  ElasticIpId:
+    Description: The valid Allocation ID of an existing Elastic VPC IP
+    Type: String
+Mappings:
+  RegionMap:
+    eu-north-1:
+      "HVM64": "ami-b4961fca"
+    ap-south-1:
+      "HVM64": "ami-011f54f05a07cd567"
+    eu-west-3:
+      "HVM64": "ami-01a84e4648f1b3648"
+    eu-west-2:
+      "HVM64": "ami-0ba01a1243ad322b2"
+    eu-west-1:
+      "HVM64": "ami-0c6b0ebfcb4955611"
+    ap-northeast-2:
+      "HVM64": "ami-0722027c74d57d9da"
+    ap-northeast-1:
+      "HVM64": "ami-0e6bfef23deb47f3b"
+    sa-east-1:
+      "HVM64": "ami-0d18143fe8c304863"
+    ca-central-1:
+      "HVM64": "ami-09656b510c171d91a"
+    ap-southeast-1:
+      "HVM64": "ami-00995af84c4a6b291"
+    ap-southeast-2:
+      "HVM64": "ami-023cac633b271333a"
+    eu-central-1:
+      "HVM64": "ami-0dd44912553b9e823"
+    us-east-1:
+      "HVM64": "ami-0edb2f4e5579111a7"
+    us-east-2:
+      "HVM64": "ami-08b64aed183826129"
+    us-west-1:
+      "HVM64": "ami-077626d8853156c6a"
+    us-west-2:
+      "HVM64": "ami-023c58c844ed0646b"
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      Tags:
+        -
+          Key: "Name"
+          Value: !Ref StackName
+      InstanceType:
+        Ref: InstanceType
+      SecurityGroups:
+        - Ref: InstanceSecurityGroup
+      KeyName:
+        Ref: KeyName
+      IamInstanceProfile:
+        Ref: IamRoleSGInstanceProfile
+      ImageId:
+        Fn::FindInMap:
+          - RegionMap
+          - Ref: AWS::Region
+          - HVM64
+  VpcIPAssoc:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref EC2Instance
+      AllocationId: !Ref ElasticIpId
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Ref StackName
+      GroupDescription: Enable SSH access via TCP port 22 & DNS access via UDP port 53
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp:
+            Ref: SSHLocation
+        - IpProtocol: udp
+          FromPort: '53'
+          ToPort: '53'
+          CidrIp:
+            Ref: SSHLocation
+  IamRoleSG:
+    Type: AWS::IAM::Role
+    Properties:
+      Policies:
+        -
+          PolicyName: !Ref StackName
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "ec2:DescribeSecurityGroups"
+                  - "ec2:DescribeSecurityGroupReferences"
+                  - "ec2:AuthorizeSecurityGroupEgress"
+                  - "ec2:AuthorizeSecurityGroupIngress"
+                  - "ec2:RevokeSecurityGroupEgress"
+                  - "ec2:RevokeSecurityGroupIngress"
+                Resource: "*"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      RoleName: !Ref StackName
+  IamRoleSGInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - Ref: "IamRoleSG"
+Outputs:
+  InstanceId:
+    Description: InstanceId of the newly created EC2 instance
+    Value:
+      Ref: EC2Instance
+  AZ:
+    Description: Availability Zone of the newly created EC2 instance
+    Value:
+      Fn::GetAtt:
+        - EC2Instance
+        - AvailabilityZone
+  PublicDNS:
+    Description: Public DNSName of the newly created EC2 instance
+    Value:
+      Fn::GetAtt:
+        - EC2Instance
+        - PublicDnsName
+  PublicIP:
+    Description: Public IP address of the newly created EC2 instance
+    Value:
+      Fn::GetAtt:
+        - EC2Instance
+        - PublicIp

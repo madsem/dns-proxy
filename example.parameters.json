@@ -1,0 +1,14 @@
+[
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "Name_Of_Your_Key"
+  },
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "t3.nano"
+  },
+  {
+    "ParameterKey": "ElasticIpId",
+    "ParameterValue": "Allocation_ID_of_your_EIP"
+  }
+]

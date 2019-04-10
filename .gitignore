@@ -1,2 +1,4 @@
-*.pyc
-.properties
+.idea
+parameters.json
+dynamic-dns-domains.txt
+secrets.txt
