@@ -16,7 +16,6 @@ footprint.net
 level3.net
 llnwd.net
 edgecastcdn.net
-cloudfront.net
 hulu.com
 huluim.com
 hbonow.com
