@@ -77,9 +77,7 @@ If you're on macOS, you can use the small script in `ip-updater/`. Just fill in 
 dynamic dns providers.
 
 #### Supported providers:
-(The script expects you to fill in details for both providers)
 - https://duckdns.org
-- https://goip.de
 
 
 	- The End -

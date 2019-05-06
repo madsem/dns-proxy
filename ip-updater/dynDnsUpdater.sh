@@ -6,7 +6,6 @@
 #
 # Supported providers:
 # https://duckdns.org
-# https://goip.de
 #
 ##
 
@@ -35,34 +34,6 @@ read -p 'Domain(s): ' DUCK_DNS_SUBDOMAINS
 
 echo -e "\n\n"
 
-##############################################################
-# GoIP setup
-##############################################################
-# User & Pass
-echo -e "\033[93mWhat is your GoIP.de Username?\033[0m"
-read -p 'User: ' GOIP_USER
-
-echo -e "\n\n"
-
-echo -e "\033[93mWhat is your GoIP.de Password?\033[0m"
-read -p 'Password: ' GOIP_PASS
-
-echo -e "\n\n"
-
-# Comma separated list of sub domains: one.goip.de,two.goip.de,three.goip.de
-goip_domains=$(cat << EOF
-Which domain name(s) should I update for GoIP.de?
-Please write the full name, including domain.
-If full domain is mydns.goip.de, write 'mydns.goip.de'
-Separate multiple by comma: mydns.goip.de,yourdns.goip.de,thatdns.goip.de
-
-EOF
-)
-
-echo -e "\n\033[93m${goip_domains}\033[0m"
-
-read -p 'Domain(s): ' GOIP_SUBDOMAINS
-
 
 # create a hidden directory in users home dir
 cd ~
@@ -86,14 +57,7 @@ echo "Your IP: \${IP}"
 ducky=\$(echo \$(curl -s -k "https://www.duckdns.org/update?domains=${DUCK_DNS_SUBDOMAINS}&token=${DUCK_DNS_TOKEN}&ip="))
 echo "DuckDNS Answer: \${ducky}"
 if [[ "\${ducky}" == "KO" ]]; then
- osascript -e 'display notification "Better check your Ducks..." with title "Duck DNS Notification" subtitle "DNS Update Failed" sound name "Submarine"'
-fi
-
-# GoIP
-goip=\$(echo \$(curl -s -k "https://www.goip.de/setip?username=${GOIP_USER}&password=${GOIP_PASS}&subdomain=${GOIP_SUBDOMAINS}&ip=\${IP}&shortResponse=true"))
-echo "GoIp Answer: \${goip}"
-if [[ ! "\${goip}" == *"\${IP}"* ]]; then
- osascript -e 'display notification "Better check your account, before you wreck your account..." with title "GOIP.de DNS Notification" subtitle "DNS Update Failed" sound name "Submarine"'
+ osascript -e 'display notification "Better check your Ducks..." with title "Duck DNS Notification" subtitle "DNS Update Failed"'
 fi
 DYNDNS
 
